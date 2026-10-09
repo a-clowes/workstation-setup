@@ -18,6 +18,5 @@ echo "Uncomment what you want."
 # brew install --cask textmate
 # brew install --cask macvim
 # brew install --cask jetbrains-toolbox --force # guard against pre-installed jetbrains-toolbox
-# brew install --cask atom
 
 set -e

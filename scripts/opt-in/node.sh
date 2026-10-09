@@ -1,20 +1,14 @@
 echo
-echo "Installing most recent version of NodeJS"
+echo "Installing fnm (Fast Node Manager) to manage NodeJS versions"
 
-brew install node
+brew install fnm
+
+# Load fnm in new shells; --use-on-cd switches to the version in a
+# project's .node-version or .nvmrc when you cd into it
+add_line_once 'eval "$(fnm env --use-on-cd --shell zsh)"' ~/.zshrc
 
 echo
-echo "Installing global NodeJS Packages"
-
-npm install --global yo
-npm install --global webpack
-npm install --global grunt-cli
-npm install --global gulp-cli
-
-# guard against preinstalled webstorm
-brew install --cask webstorm --force
-
-#source ${MY_DIR}/scripts/common/download-jetbrains-ide-prefs.sh
-#pushd ~/workspace/jetbrains-ide-prefs/cli
-#./bin/ide_prefs install --ide=webstorm
-#popd
+echo "Installing latest LTS version of NodeJS"
+eval "$(fnm env --shell bash)"
+# The first version fnm installs becomes the default
+fnm install --lts

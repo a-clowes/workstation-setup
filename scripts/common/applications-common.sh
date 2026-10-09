@@ -8,7 +8,8 @@ echo "Installing applications"
 # Utilities
 
 brew install --cask flycut
-brew install --cask rectangle
+# Not needed: Rectangle is already installed
+# brew install --cask rectangle
 
 # Terminals
 brew install --cask iterm2

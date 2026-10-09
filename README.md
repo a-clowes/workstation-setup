@@ -1,10 +1,10 @@
 # Workstation Setup
 
-This project automates the process of setting up a new Mac OS X software development machine using simple [Bash](https://www.gnu.org/software/bash/) scripting. It heavily relies on [homebrew](https://brew.sh/).
+This project automates the process of setting up a new macOS software development machine using simple [Bash](https://www.gnu.org/software/bash/) scripting. It heavily relies on [homebrew](https://brew.sh/).
 
 ## Goals
 
-The primary goal of this project is to give people a simple script they can run to make their Mac OS X machine prepared and standardized for working on software development projects, especially those common at VMware Tanzu Labs.
+The primary goal of this project is to give people a simple script they can run to make their macOS machine prepared and standardized for working on software development projects, especially those common at VMware Tanzu Labs.
 
 ## Why did we do it this way?
 
@@ -51,14 +51,26 @@ Examples:
 # This will only install the default items
 ./setup.sh 
 
-# This will install the latest Java and Docker
-./setup.sh java docker
+# This will install Java and JavaScript (Node) development tools
+./setup.sh java node
 ```
 
-**Warning: this tool might overwrite existing configurations.**
+**Warning: this tool might overwrite existing configurations.** In particular, `scripts/common/configuration-osx.sh` removes every icon from your Dock, hides the Dock, sets a very fast key repeat, and replaces your iTerm and Rectangle settings. Comment out anything you don't want before running.
+
+The scripts are safe to rerun: lines added to your shell config files (`~/.zshrc`, `~/.zshenv`, `~/.zprofile`) are only added once.
 
 ### Items installed by default
-We recommend that you look at `setup.sh` to see what is automatically installed. You'll see it calls other scripts within `scripts/common`, so feel free to take a look at those, too. Note that you can edit any of those files to add or remove items specific for your needs, but the goal of this project is to have sane defaults for our target audience.
+We recommend that you look at `setup.sh` to see what is automatically installed. You'll see it calls other scripts within `scripts/common`, so feel free to take a look at those, too. In summary:
+
+ * **Homebrew** and **Oh My Zsh**. Oh My Zsh replaces `~/.zshrc` (keeping a backup in `~/.zshrc.pre-oh-my-zsh`); any `export PATH=...` lines from your old `~/.zshrc` are copied into the new one.
+ * **Editors:** Visual Studio Code and Vim
+ * **Git:** the latest Git, global settings (Vim as editor, `main` as the default branch for new repos) and [Git aliases](#git-aliases)
+ * **Applications:** Flycut, iTerm2, Google Chrome, Firefox, Slack and Zoom
+ * **Developer utilities:** Dash and Postman
+ * **Command-line tools:** autojump, grc, coreutils, watch, direnv, pstree, the_silver_searcher, wget and jq
+ * **macOS settings:** see the warning above
+
+ Note that you can edit any of those files to add or remove items specific for your needs, but the goal of this project is to have sane defaults for our target audience.
 
 ### Opt-In Configurations
 Please look in `scripts/opt-in/` for optional, opt-in configurations. Some of these are languages and associated frameworks, such as `java` and `golang`. Some are supporting infrastructure, such as `docker` and `kubernetes`. Others might be specific tools for application platforms, such as `cloud-foundry`.
@@ -66,6 +78,9 @@ Please look in `scripts/opt-in/` for optional, opt-in configurations. Some of th
 To install any of these, add them as arguments to `$> setup.sh`. Examples: 
 
 ```sh
+# Java and JavaScript development
+./setup.sh java node
+
 # Common for Spring Boot development
 ./setup.sh java spring-boot docker
 
@@ -76,14 +91,60 @@ To install any of these, add them as arguments to `$> setup.sh`. Examples:
 ./setup.sh golang docker kubernetes cloud-foundry terraform concourse
 ```
 
+### Managing Java and Node versions
+
+Projects often need a specific Java or Node version, so `java` and `node` install version managers rather than a single version.
+
+**Java** (`java`): installs OpenJDK 17, 21 and 25 from Homebrew, plus [jenv](https://www.jenv.be/) to switch between them. JDK 25 is the default. jenv also keeps `JAVA_HOME` pointing at the active JDK, so Maven, Gradle and IntelliJ use it. It also installs IntelliJ IDEA, Maven and Gradle.
+
+```sh
+jenv versions     # list installed JDKs
+jenv local 17     # use JDK 17 in this project (writes .java-version)
+jenv global 21    # change the default JDK
+```
+
+To install different JDKs, edit `JDK_VERSIONS` at the top of `scripts/opt-in/java.sh`. The last version listed becomes the default.
+
+**Node** (`node`): installs [fnm](https://github.com/Schniz/fnm) and the latest LTS version of Node. When you `cd` into a project with a `.node-version` or `.nvmrc` file, fnm switches to that version.
+
+```sh
+fnm install 20    # install Node 20
+fnm use 20        # use it in the current shell
+fnm default 20    # make it the default
+```
+
+Open a new terminal after setup so jenv and fnm are loaded.
+
+## Git aliases
+
+`scripts/common/git-aliases.sh` sets these global aliases:
+
+| Alias | Runs |
+|---|---|
+| `git st` | `git status` |
+| `git di` | `git diff` |
+| `git ds` | `git diff --staged` |
+| `git co` | `git checkout` |
+| `git ci` | `git commit` |
+| `git cp` | `git cherry-pick` |
+| `git br` | `git branch` |
+| `git sta` | `git stash` |
+| `git llog` | log with local dates |
+| `git flog` | log with full author and committer details |
+| `git lg` | colourful one-line graph log |
+| `git lol` / `git lola` | one-line graph log of the current branch / all branches |
+| `git blog` | commits that differ between your branch and the remote default branch |
+| `git rum` | rebase onto the upstream of the default branch |
+| `git fixup` / `git squash` | `git commit --fixup` / `git commit --squash` |
+| `git amendit` | amend the last commit without editing its message |
+| `git unstage` | `git reset HEAD` |
+| `git default-branch` | print the repo's default branch |
+
+`blog` and `rum` work in repos that use either `main` or `master`. They use the remote's default branch (`origin/HEAD`), falling back to `main` if it exists locally, otherwise `master`.
+
 ## Analytics
 
-The tool will send anonymous user data to our Google Analytics account, so we can see what command line arguments are popular.  You can disable this:
-```
-# Remove unnecessary languages when running command
-SKIP_ANALYTICS=1 ./setup.sh java ruby node golang c docker
-```
-This will also disable brew's [data collection](https://github.com/Homebrew/brew/blob/master/docs/Analytics.md).
+This tool doesn't collect any usage data. It also turns off Homebrew's [analytics](https://docs.brew.sh/Analytics).
 
 ## Having problems?
 
@@ -106,7 +167,7 @@ A: Yes, but with a _but_. While this script is not entirely [idempotent](https:/
 
 _Q: Should I run this with `sudo`?_
 
-A: No. `setup.sh` will ask you for your password take care of that for you.
+A: No. `setup.sh` will ask you for your password and take care of that for you.
 
 _Q: I'm getting permission errors such as the one below:_
 ```sh 
@@ -141,6 +202,6 @@ A: **Short answer:** run the suggested command or consider the **Possible Soluti
     umask 022 # or whatever you noted earlier
    ```
 
-_Q: How to I get my change into this tool?_
+_Q: How do I get my change into this tool?_
 
 A: Submit a PR, especially for things that are outdated or broken. But, we are being vigilant about keeping this tool lean after a history of letting many idiosyncratic changes creep in over the past few years. As stated above, you can edit the files yourself after downloading them and/or fork.

@@ -6,4 +6,4 @@ brew install hashicorp/tap/terraform
 
 # shell completion
 
-terraform -install-autocomplete
+terraform -install-autocomplete || true # fails if already installed
